@@ -1,0 +1,21 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+asyncpg
+alembic
+pydantic
+pydantic-settings
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+transformers
+torch==2.5.1+cpu
+--extra-index-url https://download.pytorch.org/whl/cpu
+peft
+redis
+celery
+scikit-learn
+psycopg2-binary
+httpx
+python-dotenv
+websockets

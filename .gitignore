@@ -1,0 +1,401 @@
+# Bandog Multi-Asset Hedge Platform - .gitignore
+
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ========================
+# Virtual Environments
+# ========================
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv
+.python-version
+poetry.lock
+
+# ========================
+# Jupyter Notebooks
+# ========================
+.ipynb_checkpoints
+*.ipynb
+!notebooks/examples/*.ipynb  # Keep example notebooks
+notebooks/scratch/
+notebooks/experiments/
+
+# ========================
+# Environment Variables & Secrets
+# ========================
+.env
+.env.*
+!.env.example
+.vars
+*.key
+*.pem
+*.crt
+*.p12
+secrets/
+credentials/
+api_keys.json
+config/secrets.yaml
+
+# Specific API credentials
+*_api_key.txt
+*_secret.txt
+oauth_*.json
+service_account.json
+
+# ========================
+# Database Files
+# ========================
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+users.db/
+database/
+*.sql.gz
+*.dump
+backups/*.sql
+
+# TimescaleDB
+timescale_data/
+
+# PostgreSQL
+postgres_data/
+pgdata/
+
+# ========================
+# Model Files & Artifacts
+# ========================
+*.pkl
+*.pickle
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.ckpt
+*.pb
+*.onnx
+*.joblib
+*.model
+models/trained/
+models/checkpoints/
+src/models/*.pkl
+!src/models/.gitkeep
+pickle/
+
+# MLflow
+mlruns/
+mlartifacts/
+.mlflow/
+
+# Weights & Biases
+wandb/
+
+# TensorBoard
+runs/
+tensorboard_logs/
+
+# ========================
+# Data Files
+# ========================
+# Raw data
+data/raw/finance/**/*.csv
+data/raw/csv/**/*.csv
+!data/raw/csv/.gitkeep
+*.parquet
+*.feather
+*.arrow
+
+# Processed data
+data/processed/**/*.csv
+data/processed/**/*.parquet
+!data/processed/.gitkeep
+
+# Large datasets
+*.tar.gz
+*.zip
+*.7z
+data/downloads/
+data/cache/
+
+# JSON data (keep schemas, ignore data)
+data/raw/csv/json/**/*.json
+data/processed/subreddit/csv/**/*.csv
+!data/schemas/*.json
+
+# ========================
+# Logs
+# ========================
+logs/
+*.log
+log/
+*.out
+*.err
+app.log
+error.log
+train.log
+pipeline.log
+scaler.log
+
+# ========================
+# Cache & Temporary Files
+# ========================
+.cache/
+*.cache
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.*.swp
+tmp/
+temp/
+.tmp/
+cache/
+
+# Redis
+dump.rdb
+appendonly.aof
+
+# ========================
+# Docker
+# ========================
+.docker/
+docker-compose.override.yml
+*.dockerfile
+Dockerfile.dev
+
+# ========================
+# IDE & Editors
+# ========================
+# VSCode
+.vscode/
+!.vscode/settings.json.example
+!.vscode/extensions.json
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+.idea_modules/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ========================
+# Testing & Coverage
+# ========================
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.hypothesis/
+*.cover
+*.py,cover
+.cache
+nosetests.xml
+coverage.xml
+*.coveragerc
+
+# ========================
+# Documentation
+# ========================
+docs/_build/
+docs/_static/
+docs/_templates/
+site/
+.sphinx/
+*.pdf
+!docs/*.pdf
+
+# ========================
+# CI/CD
+# ========================
+.github/workflows/*.yml
+!.github/workflows/ci.yml.example
+
+# ========================
+# MinIO / S3
+# ========================
+.minio/
+minio_data/
+s3_cache/
+
+# ========================
+# Monitoring & Metrics
+# ========================
+prometheus_data/
+grafana_data/
+.prometheus/
+.grafana/
+
+# ========================
+# Backtest Results
+# ========================
+backtest_results/
+backtests/*.html
+backtests/*.json
+!backtests/examples/
+
+# ========================
+# Trading Bot
+# ========================
+# Live trading logs (CRITICAL - never commit)
+trading/live_logs/
+trading/execution_logs/
+orders/*.json
+fills/*.json
+positions/*.json
+
+# Paper trading results (optional)
+# trading/paper_logs/
+
+# ========================
+# Portfolio Data
+# ========================
+portfolios/*.json
+!portfolios/template.json
+portfolio_snapshots/
+
+# ========================
+# Static Files (if using web framework)
+# ========================
+static/uploads/
+static/media/
+staticfiles/
+media/
+
+# ========================
+# Streamlit
+# ========================
+.streamlit/secrets.toml
+.streamlit/config.toml
+
+# ========================
+# macOS
+# ========================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# ========================
+# Windows
+# ========================
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ========================
+# Linux
+# ========================
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ========================
+# Profiling
+# ========================
+*.prof
+*.lprof
+*.pyprof
+.profiling/
+
+# ========================
+# Compiled Extensions
+# ========================
+*.so
+*.dylib
+*.dll
+
+# ========================
+# Distribution / Packaging
+# ========================
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ========================
+# Misc
+# ========================
+*.bak
+*.orig
+*.rej
+*-old
+*.backup
+.project
+.pydevproject
+.settings/
+
+# Keep important files
+!.gitkeep
+!README.md
+!LICENSE
+!requirements.txt
+!setup.py
+!pyproject.toml
