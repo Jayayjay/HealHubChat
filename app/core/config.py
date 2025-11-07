@@ -1,5 +1,4 @@
 from pydantic_settings import BaseSettings
-from sqlalchemy.engine import URL
 
 class Settings(BaseSettings):
     # Database - individual components
@@ -9,16 +8,12 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = "db"
     POSTGRES_PORT: str = "5432"
     
-    # Construct DATABASE_URL using SQLAlchemy URL object
+    # Return DATABASE_URL as a string, not URL object
     @property
-    def DATABASE_URL(self) -> URL:
-        return URL.create(
-            drivername="postgresql+asyncpg",
-            username=self.POSTGRES_USER,
-            password=self.POSTGRES_PASSWORD,  # Raw password - no encoding needed!
-            host=self.POSTGRES_HOST,
-            port=int(self.POSTGRES_PORT),
-            database=self.POSTGRES_DB,
+    def DATABASE_URL(self) -> str:
+        return (
+            f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+            f"@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
         )
     
     # Redis

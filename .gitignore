@@ -280,6 +280,7 @@ backtest_results/
 backtests/*.html
 backtests/*.json
 !backtests/examples/
+models/
 
 # ========================
 # Trading Bot

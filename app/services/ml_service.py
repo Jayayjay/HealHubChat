@@ -21,7 +21,7 @@ class MLService:
         # Load chat model
         print("Loading chat model...")
         base_model = AutoModelForCausalLM.from_pretrained(
-            settings.BASE_MODEL_PATH,
+            settings.MODEL_PATH,
             torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
             device_map="auto"
         )
