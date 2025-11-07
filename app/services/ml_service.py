@@ -1,5 +1,5 @@
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline, BitsAndBytesConfig
 from peft import PeftModel
 from app.core.config import settings
 import asyncio
@@ -11,7 +11,7 @@ class MLService:
         self.chat_model = None
         self.chat_tokenizer = None
         self.sentiment_pipeline = None
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = "cpu" # if torch.cuda.is_available() else "cpu"
         
     async def initialize(self):
         """Initialize ML models"""
@@ -19,10 +19,15 @@ class MLService:
     
     def _load_models(self):
         # Load chat model
+        quant_config = BitsAndBytesConfig(
+            load_in_8bit=True,
+            bnb_8bit_compute_dtype= torch.float16
+        )
         print("Loading chat model...")
         base_model = AutoModelForCausalLM.from_pretrained(
-            settings.MODEL_PATH,
-            torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
+            settings.BASE_MODEL_PATH,
+            quantization_config=quant_config,
+            # torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
             device_map="auto"
         )
         self.chat_model = PeftModel.from_pretrained(base_model, settings.MODEL_PATH)

@@ -3,6 +3,7 @@ uvicorn[standard]
 sqlalchemy
 asyncpg
 alembic
+llama-cpp-python
 pydantic[email]
 pydantic-settings
 python-jose[cryptography]

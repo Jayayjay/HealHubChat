@@ -1,23 +1,27 @@
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm  # Debian base per prior
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system deps + llama.cpp build tools
 RUN apt-get update && apt-get install -y \
     build-essential \
+    git \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    cmake \
+    && git clone https://github.com/ggerganov/llama.cpp && \
+    cd llama.cpp && make -j && cd .. && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
+# Copy requirements and install
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy app code
 COPY . .
 
-# Create models directory
+# Models dir (assume model in repo via git LFS or download in entrypoint)
 RUN mkdir -p /models
 
-EXPOSE 8000
+EXPOSE 7860
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]
