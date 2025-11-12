@@ -1,6 +1,5 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline, BitsAndBytesConfig
-from peft import PeftModel
 from app.core.config import settings
 import asyncio
 from typing import Optional, List, Dict, Any
@@ -11,33 +10,43 @@ class MLService:
         self.chat_model = None
         self.chat_tokenizer = None
         self.sentiment_pipeline = None
-        self.device = "cpu" # if torch.cuda.is_available() else "cpu"
+        self.device = "cpu"  # if torch.cuda.is_available() else "cpu"
         
     async def initialize(self):
         """Initialize ML models"""
         await asyncio.to_thread(self._load_models)
     
     def _load_models(self):
-        # Load chat model
+        # Load fine-tuned chat model directly from HuggingFace
         quant_config = BitsAndBytesConfig(
             load_in_8bit=True,
-            bnb_8bit_compute_dtype= torch.float16
+            bnb_8bit_compute_dtype=torch.float16
         )
-        print("Loading chat model...")
-        base_model = AutoModelForCausalLM.from_pretrained(
-            settings.BASE_MODEL_PATH,
+        
+        print(f"Loading fine-tuned model from {settings.MODEL_PATH}...")
+        self.chat_model = AutoModelForCausalLM.from_pretrained(
+            settings.MODEL_PATH,
             quantization_config=quant_config,
-            # torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
-            device_map="auto"
+            device_map="auto",
+            trust_remote_code=True
         )
-        self.chat_model = PeftModel.from_pretrained(base_model, settings.MODEL_PATH)
-        self.chat_tokenizer = AutoTokenizer.from_pretrained(settings.MODEL_PATH)
+        
+        print(f"Loading tokenizer from {settings.MODEL_PATH}...")
+        self.chat_tokenizer = AutoTokenizer.from_pretrained(
+            settings.MODEL_PATH,
+            trust_remote_code=True
+        )
+        
+        # Set pad token if not set
+        if self.chat_tokenizer.pad_token is None:
+            self.chat_tokenizer.pad_token = self.chat_tokenizer.eos_token
         
         # Load sentiment analysis model
-        print("Loading sentiment model...")
+        print(f"Loading sentiment model from {settings.SENTIMENT_MODEL_PATH}...")
         self.sentiment_pipeline = pipeline(
             "sentiment-analysis",
-            model="distilbert-base-uncased-finetuned-sst-2-english",
+            model=settings.SENTIMENT_MODEL_PATH,
+            tokenizer=settings.SENTIMENT_MODEL_PATH,
             device=0 if self.device == "cuda" else -1
         )
         print("Models loaded successfully!")

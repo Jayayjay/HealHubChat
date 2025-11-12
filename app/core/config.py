@@ -25,8 +25,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # Model paths
+    
     MODEL_PATH: str = "/models/healhub-tinyllama-1.1B-Chat"
-    BASE_MODEL_PATH: str = "jayayjay/TinyLlama-HealHub-FineTuned"
+    SENTIMENT_MODEL_PATH: str = "/models/sentiment_model"
+    
     
     # App
     ENVIRONMENT: str = "production"
