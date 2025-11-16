@@ -1,26 +1,27 @@
-FROM python:3.11-slim-bookworm  # Debian base per prior
+FROM python:3.11-slim-bookworm
 
 WORKDIR /app
 
-# Install system deps + llama.cpp build tools
-RUN apt-get update && apt-get install -y \
+# Use cache for apt with retry logic
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && \
+    apt-get install -y \
     build-essential \
     git \
     curl \
-    cmake \
-    && git clone https://github.com/ggerganov/llama.cpp && \
-    cd llama.cpp && make -j && cd .. && \
-    rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install
+# Copy requirements first for better caching
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy app code
+# Install Python dependencies with cache and retry
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy app code (changes here break cache)
 COPY . .
 
-# Models dir (assume model in repo via git LFS or download in entrypoint)
-RUN mkdir -p /models
+RUN mkdir -p models
 
 EXPOSE 7860
 

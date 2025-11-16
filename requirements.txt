@@ -3,7 +3,8 @@ uvicorn[standard]
 sqlalchemy
 asyncpg
 alembic
-llama-cpp-python
+llama-cpp-python 
+--extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
 bitsandbytes
 pydantic[email]
 pydantic-settings
@@ -21,3 +22,4 @@ psycopg2-binary
 httpx
 python-dotenv
 websockets
+argon2_cffi
