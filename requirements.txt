@@ -3,8 +3,8 @@ uvicorn[standard]
 sqlalchemy
 asyncpg
 alembic
-llama-cpp-python 
---extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+llama-cpp-python
+--extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cu121  # Changed to CUDA
 bitsandbytes
 pydantic[email]
 pydantic-settings
@@ -12,9 +12,10 @@ python-jose[cryptography]
 passlib[bcrypt]
 python-multipart
 transformers
-torch==2.5.1+cpu
---extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1+cu121  # Changed to CUDA version
+--extra-index-url https://download.pytorch.org/whl/cu121
 peft
+accelerate  # Added for better GPU support
 redis
 celery
 scikit-learn
