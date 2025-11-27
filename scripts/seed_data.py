@@ -14,9 +14,9 @@ try:
     from app.db.database import AsyncSessionLocal
     from app.models.models import User, Conversation, Message
     from app.core.security import get_password_hash
-    print("✅ Successfully imported all modules")
+    print("Successfully imported all modules")
 except ImportError as e:
-    print(f"❌ Import error: {e}")
+    print(f"Import error: {e}")
     print("Python path:", sys.path)
     print("Current directory:", os.getcwd())
     if os.path.exists('/app'):
@@ -99,15 +99,15 @@ async def seed_data():
                         db.add(message)
                     
                     await db.commit()
-                    print(f"✅ Created conversation {i+1} for user {user.username}")
+                    print(f"Created conversation {i+1} for user {user.username}")
             
-            print("✅ Database seeded successfully!")
+            print("Database seeded successfully!")
             print("\nTest credentials:")
             print("Username: john_doe, Password: password123")
             print("Username: jane_smith, Password: password123")
             
     except Exception as e:
-        print(f"❌ Error seeding data: {e}")
+        print(f"Error seeding data: {e}")
         import traceback
         traceback.print_exc()
 

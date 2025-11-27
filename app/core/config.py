@@ -26,9 +26,8 @@ class Settings(BaseSettings):
     
     # Model paths
     
-    MODEL_PATH: str = "/models/healhub-tinyllama-1.1B-Chat"
-    SENTIMENT_MODEL_PATH: str = "/models/sentiment_model"
-    
+    MODEL_PATH: str = "models/healhub-tinyllama-1.1B-Chat"
+    SENTIMENT_MODEL_PATH: str = "models/sentiment_model"
     
     # App
     ENVIRONMENT: str = "production"

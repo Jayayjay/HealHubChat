@@ -1,11 +1,13 @@
-from huggingface_hub import snapshot_download
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 
-model_id = "jayayjay/TinyLlama-HealHub-FineTuned"
-local_dir = "./models/healhub-tinyllama-1.1B-Chat"
+SENTIMENT_MODEL_PATH = "./models/sentiment_model/"
 
-# Download the entire model repository
-snapshot_download(
-    repo_id=model_id,
-    local_dir=local_dir,
-    local_dir_use_symlinks=False  # Better for direct file access
-)
+# Download and save the model and tokenizer locally
+model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english")
+tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased-finetuned-sst-2-english")
+
+# Save to your specified local path
+model.save_pretrained(SENTIMENT_MODEL_PATH)
+tokenizer.save_pretrained(SENTIMENT_MODEL_PATH)
+
+print(f"Model saved to: {SENTIMENT_MODEL_PATH}")
