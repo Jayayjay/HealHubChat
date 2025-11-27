@@ -1,5 +1,6 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from peft import PeftModel, PeftConfig  # Add this import
 from app.core.config import settings
 import asyncio
 from typing import Optional, List, Dict, Any
@@ -35,7 +36,8 @@ class MLService:
     def _load_models(self):
         try:
             # Get model paths from settings
-            model_path = getattr(settings, 'MODEL_PATH', '/models/healhub-tinyllama-1.1B-Chat')
+            model_path = getattr(settings, 'MODEL_PATH', '/models/Finetuned-Llama-3B-HealHub')
+            base_model_path = getattr(settings, 'BASE_MODEL_PATH', 'meta-llama/Llama-3.2-3B-Instruct')  # Add base model path
             sentiment_path = getattr(settings, 'SENTIMENT_MODEL_PATH', '/models/sentiment_model')
             
             # Validate chat model path
@@ -43,54 +45,112 @@ class MLService:
             if not os.path.exists(model_path):
                 raise FileNotFoundError(f"Model directory not found: {model_path}")
             
-            # Check for required files
-            required_files = {
-                'config.json': 'Model configuration',
-                'tokenizer_config.json': 'Tokenizer configuration',
+            # Check for adapter files (LoRA fine-tuning)
+            adapter_files = {
+                'adapter_config.json': 'Adapter configuration',
+                'adapter_model.safetensors': 'Adapter weights',
             }
             
-            # Check for model weights
-            model_file = None
-            if os.path.exists(os.path.join(model_path, 'model.safetensors')):
-                model_file = 'model.safetensors'
-            elif os.path.exists(os.path.join(model_path, 'pytorch_model.bin')):
-                model_file = 'pytorch_model.bin'
+            # Check if this is a LoRA adapter or full model
+            is_adapter = all(os.path.exists(os.path.join(model_path, filename)) 
+                           for filename in ['adapter_config.json', 'adapter_model.safetensors'])
             
-            if not model_file:
-                raise FileNotFoundError(
-                    f"No model weights found in {model_path}. "
-                    f"Expected 'model.safetensors' or 'pytorch_model.bin'"
+            if is_adapter:
+                logger.info("Detected LoRA adapter files - loading with base model")
+                logger.info(f"Base model: {base_model_path}")
+                
+                # Verify adapter files
+                for filename, description in adapter_files.items():
+                    file_path = os.path.join(model_path, filename)
+                    if os.path.exists(file_path):
+                        logger.info(f"Found {description}: {filename}")
+                    else:
+                        raise FileNotFoundError(f"Missing adapter file: {filename}")
+                
+                # Load base model first
+                logger.info("Loading base model...")
+                base_model = AutoModelForCausalLM.from_pretrained(
+                    base_model_path,
+                    torch_dtype=torch.float32,
+                    low_cpu_mem_usage=True,
+                    trust_remote_code=True,
+                    local_files_only=False,  # Need to download base model if not cached
+                )
+                
+                # Load adapter
+                logger.info("Loading LoRA adapter...")
+                self.chat_model = PeftModel.from_pretrained(
+                    base_model,
+                    model_path,
+                    torch_dtype=torch.float32
+                )
+                
+                # Optional: Merge adapter with base model for faster inference
+                # Uncomment the line below if you want to merge them permanently
+                # self.chat_model = self.chat_model.merge_and_unload()
+                
+            else:
+                # Original logic for full model
+                logger.info("Loading as full model...")
+                required_files = {
+                    'config.json': 'Model configuration',
+                    'tokenizer_config.json': 'Tokenizer configuration',
+                }
+                
+                # Check for model weights
+                model_file = None
+                if os.path.exists(os.path.join(model_path, 'model.safetensors')):
+                    model_file = 'model.safetensors'
+                elif os.path.exists(os.path.join(model_path, 'pytorch_model.bin')):
+                    model_file = 'pytorch_model.bin'
+                
+                if not model_file:
+                    raise FileNotFoundError(
+                        f"No model weights found in {model_path}. "
+                        f"Expected 'model.safetensors' or 'pytorch_model.bin'"
+                    )
+                
+                logger.info(f"Found model weights: {model_file}")
+                
+                # Verify required files
+                for filename, description in required_files.items():
+                    file_path = os.path.join(model_path, filename)
+                    if os.path.exists(file_path):
+                        logger.info(f"Found {description}: {filename}")
+                    else:
+                        logger.warning(f"Missing {description}: {filename}")
+                
+                # Load full model
+                self.chat_model = AutoModelForCausalLM.from_pretrained(
+                    model_path,
+                    torch_dtype=torch.float32,
+                    low_cpu_mem_usage=True,
+                    trust_remote_code=True,
+                    local_files_only=True,
                 )
             
-            logger.info(f"Found model weights: {model_file}")
-            
-            # Verify required files
-            for filename, description in required_files.items():
-                file_path = os.path.join(model_path, filename)
-                if os.path.exists(file_path):
-                    logger.info(f"Found {description}: {filename}")
-                else:
-                    logger.warning(f"Missing {description}: {filename}")
-            
-            # Load chat model
-            logger.info("Loading chat model into memory...")
-            self.chat_model = AutoModelForCausalLM.from_pretrained(
-                model_path,
-                torch_dtype=torch.float32,
-                low_cpu_mem_usage=True,
-                trust_remote_code=True,
-                local_files_only=True,
-            )
             self.chat_model.eval()
             logger.info("Chat model loaded successfully")
             
-            # Load tokenizer
+            # Load tokenizer - try from adapter path first, then base model
             logger.info("Loading tokenizer...")
-            self.chat_tokenizer = AutoTokenizer.from_pretrained(
-                model_path,
-                trust_remote_code=True,
-                local_files_only=True,
-            )
+            try:
+                # First try loading from adapter directory
+                self.chat_tokenizer = AutoTokenizer.from_pretrained(
+                    model_path,
+                    trust_remote_code=True,
+                    local_files_only=True,
+                )
+                logger.info("Tokenizer loaded from adapter directory")
+            except:
+                # Fall back to base model tokenizer
+                logger.info("Loading tokenizer from base model...")
+                self.chat_tokenizer = AutoTokenizer.from_pretrained(
+                    base_model_path if is_adapter else model_path,
+                    trust_remote_code=True,
+                    local_files_only=not is_adapter,
+                )
+                logger.info("Tokenizer loaded from base model")
             
             if self.chat_tokenizer.pad_token is None:
                 self.chat_tokenizer.pad_token = self.chat_tokenizer.eos_token
@@ -99,21 +159,25 @@ class MLService:
             # Load sentiment model
             logger.info(f"Loading sentiment model from: {sentiment_path}")
             if not os.path.exists(sentiment_path):
-                raise FileNotFoundError(f"Sentiment model directory not found: {sentiment_path}")
-            
-            self.sentiment_pipeline = pipeline(
-                "sentiment-analysis",
-                model=sentiment_path,
-                tokenizer=sentiment_path,
-                device=-1,
-                local_files_only=True,
-            )
-            logger.info("Sentiment model loaded successfully")
+                logger.warning(f"Sentiment model directory not found: {sentiment_path}")
+                self.sentiment_pipeline = None
+            else:
+                self.sentiment_pipeline = pipeline(
+                    "sentiment-analysis",
+                    model=sentiment_path,
+                    tokenizer=sentiment_path,
+                    device=-1,
+                    local_files_only=True,
+                )
+                logger.info("Sentiment model loaded successfully")
             
             # Summary
             logger.info("")
             logger.info("Model Loading Summary:")
-            logger.info(f"  Chat Model: {model_path}")
+            logger.info(f"  Model Type: {'LoRA Adapter' if is_adapter else 'Full Model'}")
+            logger.info(f"  Model Path: {model_path}")
+            if is_adapter:
+                logger.info(f"  Base Model: {base_model_path}")
             logger.info(f"  Sentiment Model: {sentiment_path}")
             logger.info(f"  Device: {self.device}")
             logger.info(f"  Status: Ready")
@@ -195,7 +259,7 @@ class MLService:
     
     async def analyze_sentiment(self, text: str) -> Dict:
         """Analyze sentiment of text"""
-        if not self.is_initialized:
+        if not self.is_initialized or self.sentiment_pipeline is None:
             logger.warning("ML Service not initialized for sentiment analysis")
             return {"label": "NEUTRAL", "score": 0.0}
         
